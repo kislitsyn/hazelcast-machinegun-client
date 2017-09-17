@@ -1,0 +1,59 @@
+group 'com.kislitsyn.hazelcast.machinegun'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+apply plugin: 'application'
+mainClassName = 'com.kislitsyn.hazelcast.machinegun.Application'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0-M3'
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    compile group: 'com.hazelcast', name: 'hazelcast-client', version: '3.8.4'
+    compile group: 'com.hazelcast', name: 'hazelcast-kubernetes', version: '1.0.0'
+
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.7'
+
+    compile group: 'org.apache.commons', name: 'commons-text', version: '1.1'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.3'
+
+    def prometheusVersion = '0.0.26'
+    compile "io.prometheus:simpleclient:${prometheusVersion}",
+            "io.prometheus:simpleclient_common:${prometheusVersion}",
+            "io.prometheus:simpleclient_servlet:${prometheusVersion}",
+            "io.prometheus:simpleclient_hotspot:${prometheusVersion}",
+            "io.prometheus:simpleclient_httpserver:${prometheusVersion}"
+}
+
+apply plugin: 'com.bmuschko.docker-java-application'
+docker {
+    registryCredentials {
+        url = 'https://index.docker.io/v1/'
+        username = 'kislitsyn'
+        password = System.getProperty('dockerPassword')
+        email = 'anton.v.kislitsyn@gmail.com'
+    }
+    javaApplication {
+        maintainer = 'Anton Kislitsyn "anton.v.kislitsyn@gmail.com"'
+        baseImage = 'java:openjdk-8-jre'
+        ports = [8080]
+        tag = 'kislitsyn/hazelcast-machinegun-client:latest'
+    }
+}
